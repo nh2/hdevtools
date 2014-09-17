@@ -8,7 +8,7 @@ module Cabal
 
 import Control.Exception (IOException, catch)
 import Data.Char (isSpace)
-import Data.List (foldl', nub, sort, find, isPrefixOf, isSuffixOf)
+import Data.List (nub, sort, find, isPrefixOf, isSuffixOf)
 import Data.Monoid (Monoid(..))
 import Distribution.Package (PackageIdentifier(..), PackageName)
 import Distribution.PackageDescription (PackageDescription(..), Executable(..), TestSuite(..), Benchmark(..), emptyHookedBuildInfo, buildable, libBuildInfo)
@@ -125,7 +125,7 @@ getPackageGhcOpts path = do
             Just ghcVersion -> do
                 let mbLibName = pkgLibName pkgDescr
 
-                let ghcOpts' = foldl' mappend mempty $ map (getComponentGhcOptions localBuildInfo) $ flip allComponentsBy (\c -> c) . localPkgDescr $ localBuildInfo
+                let ghcOpts' = mconcat . map (getComponentGhcOptions localBuildInfo) . flip allComponentsBy (\c -> c) . localPkgDescr $ localBuildInfo
                     -- FIX bug in GhcOptions' `mappend`
                     ghcOpts = ghcOpts' { ghcOptExtra = filter (/= "-Werror") $ nub $ ghcOptExtra ghcOpts'
                                        , ghcOptPackageDBs = sort $ nub (ghcOptPackageDBs ghcOpts')

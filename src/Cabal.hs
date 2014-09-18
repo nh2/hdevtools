@@ -101,8 +101,6 @@ getPackageGhcOpts path = do
 
         let cfgFlags' = (defaultConfigFlags defaultProgramConfiguration)
                             { configDistPref = toFlag $ takeDirectory path </> "dist"
-                            -- TODO: figure out how to find out this flag
-                            , configUserInstall = toFlag True
                             }
 
         let sandboxConfig = takeDirectory path </> "cabal.sandbox.config"
@@ -110,10 +108,15 @@ getPackageGhcOpts path = do
 
         cfgFlags <- case exists of
                          False -> return cfgFlags'
+                                           { configUserInstall = toFlag True
+                                           }
                          True -> do
                              sandboxPackageDb <- getSandboxPackageDB sandboxConfig
                              return $ cfgFlags'
                                           { configPackageDBs = [Just sandboxPackageDb]
+                                          -- configUserInstall must be off for sandboxes,
+                                          -- see https://github.com/haskell/cabal/issues/2112
+                                          , configUserInstall = toFlag False
                                           }
 
         localBuildInfo <- configure (genPkgDescr, emptyHookedBuildInfo) cfgFlags
